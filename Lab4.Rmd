@@ -1,0 +1,141 @@
+---
+title: "Lab4"
+author: "Your Name"
+date: "2024-09-26"
+output: "github_document"
+---
+
+```{r}
+library(car)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(psych)
+library(bruceR)
+
+```
+
+# Load dataset
+```{r}
+
+lab4data <- read.csv("C:/Users/Colin/Downloads/skewed.csv")
+
+
+```
+
+
+# Normality
+## Normality Plots
+```{r}
+
+
+ggplot(lab4data, aes(x = Performance)) + geom_histogram(binwidth = 20) + theme_classic()
+
+ggplot(lab4data, aes(x = Performance)) + geom_density(adjust = 2)  + theme_classic()
+
+qq<-ggplot(lab4data, aes(sample = Performance)) + geom_qq()  + theme_classic()
+
+qq+ geom_qq_line()
+
+
+
+
+qqnorm(lab4data$Performance, col = "steelblue", lwd = 2)
+
+plot(density(lab4data$Performance, na.rm = TRUE, bw = 90),  lwd=2, main = "")
+
+```
+
+### Normality Plots by Group
+```{r}
+
+#a fun function to plot the violin plot by group, but it's not part of ggplot
+#violinBy(Performance ~ Group, data = lab4data, rain= TRUE, vertical = FALSE)
+
+
+#Find a way to plot the histograms, density, and qq plots by groups using ggplot
+
+
+#Use ggplot to create a violin plot by groups
+
+
+```
+
+
+## Normality Tests
+```{r}
+
+describe(lab4data$Performance)
+
+shapiro.test(lab4data$Performance)
+
+
+
+```
+
+### Normality Tests by Group
+```{r}
+
+#Use the describeBy() function to get skewness and kurtosis by group
+
+
+#Use the group by function to get shapiro test results by group
+lab4data %>%
+  group_by(Group) %>%
+  summarize(W = shapiro.test(Performance)$statistic)
+
+#Use the filter function to get both
+
+
+
+
+
+```
+# Q1: What is your overall conclusion about this variable's normality? Why?
+
+
+
+# Equal Variance between Groups
+## Descrptive Variance
+```{r}
+
+var(lab4data$Performance)
+
+lab4data %>%
+  group_by(Group) %>%
+  summarize(...)
+
+
+```
+## Equal Variance Test
+```{r}
+
+
+leveneTest(Performance~Group, lab4data)
+
+MANOVA(lab4data, dv = "Performance", between = "Group")
+
+#What if you want to test equal variance between 2 groups specifically? 
+
+lab4dataConG1<-lab4data %>%
+  filter(Group == "Control" | Group == "G1")
+
+leveneTest(Performance~Group, lab4dataConG1)
+
+
+```
+
+# Q2: Overall, does it meet the equal variance assumption across the groups? Why?
+
+# Transformation
+```{r}
+
+#if any of the assumption is not met, use transformation 
+
+lab4data$Performance_log <- log10(lab4data$Performance)
+
+
+
+```
+
+# Q3: Run the above tests again with the transformed outcome. Compare the differences in results. 
