@@ -18,7 +18,7 @@ library(bruceR)
 # Load dataset
 ```{r}
 
-lab4data <- read.csv("C:/Users/Colin/Downloads/skewed.csv")
+lab4data <- read.csv("C:/Users/Colin/Documents/GitHub/Website/Lab4/skewed.csv")
 
 
 ```
@@ -38,7 +38,9 @@ qq<-ggplot(lab4data, aes(sample = Performance)) + geom_qq()  + theme_classic()
 qq+ geom_qq_line()
 
 
+#functions below are base R functions, they can do the job, but not as customizable as ggplot
 
+hist(lab4data$Performance)
 
 qqnorm(lab4data$Performance, col = "steelblue", lwd = 2)
 
@@ -101,12 +103,13 @@ lab4data %>%
 
 var(lab4data$Performance)
 
-lab4data %>%
-  group_by(Group) %>%
-  summarize(...)
+#lab4data %>%
+  #group_by(Group) %>%
+  #summarize(...)
 
 
 ```
+
 ## Equal Variance Test
 ```{r}
 
