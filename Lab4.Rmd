@@ -1,6 +1,6 @@
 ---
 title: "Lab4"
-author: "Your Name"
+author: "Toko Michioka"
 date: "2024-09-26"
 output: "github_document"
 ---
@@ -18,7 +18,7 @@ library(bruceR)
 # Load dataset
 ```{r}
 
-lab4data <- read.csv("C:/Users/Colin/Documents/GitHub/Website/Lab4/skewed.csv")
+lab4data <- read.csv("/Users/toko/Documents/GitHub/Lab4/skewed.csv")
 
 
 ```
@@ -52,11 +52,17 @@ plot(density(lab4data$Performance, na.rm = TRUE, bw = 90),  lwd=2, main = "")
 ```{r}
 
 #a fun function to plot the violin plot by group, but it's not part of ggplot
-#violinBy(Performance ~ Group, data = lab4data, rain= TRUE, vertical = FALSE)
+violinBy(Performance ~ Group, data = lab4data, rain= TRUE, vertical = FALSE)
 
 
 #Find a way to plot the histograms, density, and qq plots by groups using ggplot
+ggplot(lab4data, aes(x = Performance)) + geom_histogram(binwidth = 20) + facet_wrap (~Group) + theme_classic()
 
+ggplot(lab4data, aes(x = Performance)) + geom_density(adjust = 2)  + facet_wrap (~Group) + theme_classic()
+
+qq<-ggplot(lab4data, aes(sample = Performance)) + geom_qq()  + theme_classic()
+
+qq+ geom_qq_line()
 
 #Use ggplot to create a violin plot by groups
 
@@ -80,11 +86,13 @@ shapiro.test(lab4data$Performance)
 
 #Use the describeBy() function to get skewness and kurtosis by group
 
+?describeBy() 
+describeBy(Performance ~ Group, data = lab4data)
 
 #Use the group by function to get shapiro test results by group
 lab4data %>%
   group_by(Group) %>%
-  summarize(W = shapiro.test(Performance)$statistic)
+  summarize(W = shapiro.test(Performance)$statistic, p_value = shapiro.test(Performance)$p.value)
 
 #Use the filter function to get both
 
@@ -94,18 +102,18 @@ lab4data %>%
 
 ```
 # Q1: What is your overall conclusion about this variable's normality? Why?
-
+This variable's normality is met since  all of the p-values are over the threshold = .05, meaning it's insignificant.
 
 
 # Equal Variance between Groups
 ## Descrptive Variance
 ```{r}
-
+lab4data_clean<-drop_na(lab4data)
 var(lab4data$Performance)
 
-#lab4data %>%
-  #group_by(Group) %>%
-  #summarize(...)
+lab4data_clean %>%
+  group_by(Group) %>%
+  summarize(variance = var(Performance))
 
 
 ```
@@ -120,15 +128,13 @@ MANOVA(lab4data, dv = "Performance", between = "Group")
 
 #What if you want to test equal variance between 2 groups specifically? 
 
-lab4dataConG1<-lab4data %>%
-  filter(Group == "Control" | Group == "G1")
 
-leveneTest(Performance~Group, lab4dataConG1)
 
 
 ```
 
 # Q2: Overall, does it meet the equal variance assumption across the groups? Why?
+No, because the p-value (.023) is under the threshold (.05), meaning it is insignificant. Therefore, it does not meet the equal variance assumption across the groups.
 
 # Transformation
 ```{r}
@@ -136,9 +142,48 @@ leveneTest(Performance~Group, lab4dataConG1)
 #if any of the assumption is not met, use transformation 
 
 lab4data$Performance_log <- log10(lab4data$Performance)
+```
+
+```{r}
 
 
+ggplot(lab4data, aes(x = Performance_log)) + geom_histogram(binwidth = 0.25) + facet_wrap (~Group) + theme_classic()
 
+ggplot(lab4data, aes(x = Performance_log)) + geom_density(adjust = 2)  + facet_wrap (~Group) + theme_classic()
+
+qq<-ggplot(lab4data, aes(sample = Performance_log)) + geom_qq()  + theme_classic()
+
+qq+ geom_qq_line()
+
+describe(lab4data$Performance_log)
+
+shapiro.test(lab4data$Performance_log)
+
+describeBy(Performance_log ~ Group, data = lab4data)
+
+lab4data %>%
+  group_by(Group) %>%
+  summarize(W = shapiro.test(Performance_log)$statistic, p_value = shapiro.test(Performance_log)$p.value)
+
+lab4data_clean<-drop_na(lab4data)
+var(lab4data$Performance_log)
+
+lab4data_clean %>%
+  group_by(Group) %>%
+  summarize(variance = var(Performance_log))
+
+leveneTest(Performance_log~Group, lab4data)
+
+MANOVA(lab4data, dv = "Performance_log", between = "Group")
+
+lab4dataConG1<-lab4data %>%
+  filter(Group == "Control" | Group == "G1")
+
+leveneTest(Performance_log~Group, lab4dataConG1)
 ```
 
 # Q3: Run the above tests again with the transformed outcome. Compare the differences in results. 
+Before we made the transformation, the assumption of normality was violated. After we transformed the data logarithmically and corrected bandwidth, the data appeared normal.
+
+
+
